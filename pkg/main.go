@@ -27,17 +27,43 @@ func main() {
 func InsertCard() {
 	// TODO insert prop card into DB.
 	
-	/*
-	_, err := DB.Exec(`CREATE TABLE cards (
-		Name varchar(255),
-		ID varchar(255)
-	);`)
+
+	// _, err := DB.Exec(`CREATE TABLE cards (
+	// 	Name varchar(255),
+	// 	ID varchar(255)
+	// );`)
 	
+
+	// if err != nil {
+	// 	panic("SQL ERROR")
+	// }
+
+	tables, err := DB.Query("SHOW TABLES")
+	if err != nil {
+		panic("SQL ERROR")
+	}
+
+	columns, err := tables.Columns()
 
 	if err != nil {
 		panic("SQL ERROR")
 	}
-	*/
+
+	println("Columns:")
+	for _, column := range columns {
+		println(column)
+	}
+
+	println("Tables:")
+	for tables.Next() {
+		var tableName string
+		err = tables.Scan(&tableName)
+		if err != nil {
+			panic("SQL ERROR")
+		}
+		println(tableName)
+	}
+
 
 }
 
