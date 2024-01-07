@@ -2,18 +2,25 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func db(name string) {
-	// db connection
-	db, _ := sql.Open("mysql", "URL HERE")
-	defer db.Close()
+// Global DB context
 
-	version := ""
+var DB *sql.DB
 
-	db.QueryRow("SELECT VERSION()").Scan(&version)
-	fmt.Println("Connected to:", version)
+func init() {
+	println("DB Init")
+
+	var err error
+	DB, err = sql.Open("mysql", "DB HERE") // TODO add DB connection string to an env.
+	if err != nil {
+		panic("FUUUCK")
+	}
+
+	err = DB.Ping()
+	if err != nil {
+		panic(err)
+	}
 }
