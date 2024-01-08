@@ -1,4 +1,4 @@
-module backend
+module github.com/Aesir-Development/yugioh-backend
 
 go 1.21.5
 
