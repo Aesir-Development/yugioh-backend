@@ -4,27 +4,48 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 	conn "github.com/Aesir-Development/yugioh-backend/internal/db" // Importing the DB connection package
+	"github.com/Aesir-Development/yugioh-backend/pkg/card" // Importing the card package
 )
 
-// Card is a simple example struct
-// TODO - modify this to match your needs
-type card struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
 
 func main() {
 	r := gin.Default()
 	r.GET("/cards", func(c *gin.Context) {
-		cards := []card{
-			{ID: 1, Name: "card1"},
-			{ID: 2, Name: "card2"},
+		cards := []card.Card{
+			{
+				Name: "Blue-Eyes White Dragon",
+				Description: "This legendary dragon is a powerful engine of destruction.",
+				Attack: 3000,
+				Defense: 2500,
+				Level: 8,
+				Attribute: "LIGHT",
+				Type: "Dragon",
+			},
+			{
+				Name: "Dark Magician",
+				Description: "The ultimate wizard in terms of attack and defense.",
+				Attack: 2500,
+				Defense: 2100,
+				Level: 7,
+				Attribute: "DARK",
+				Type: "Spellcaster",
+			},
+			{
+				Name: "Red-Eyes Black Dragon",
+				Description: "A ferocious dragon with a deadly attack.",
+				Attack: 2400,
+				Defense: 2000,
+				Level: 7,
+				Attribute: "DARK",
+				Type: "Dragon",
+			},
 		}
 		c.JSON(http.StatusOK, cards)
 	})
 
-	// TODO - remove this test route
+	// TODO - Make a better test route for the card package. This is just a placeholder
 	r.GET("/test", func(c *gin.Context) {
+		card.TestCardFetch("Blue-Eyes White Dragon")
 		tables := FetchTables()
 		c.JSON(http.StatusOK, tables)
 	})
