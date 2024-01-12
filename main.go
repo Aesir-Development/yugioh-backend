@@ -5,10 +5,15 @@ import (
 	"github.com/gin-gonic/gin"
 	conn "github.com/Aesir-Development/yugioh-backend/internal/db" // Importing the DB connection package
 	"github.com/Aesir-Development/yugioh-backend/pkg/card" // Importing the card package
+	"github.com/Aesir-Development/yugioh-backend/internal/duel" // Importing the duel package
 )
 
 
 func main() {
+	duelManager := duel.NewDuelManager()
+	
+	duelManager.SelectCardsTest(1, 2)
+
 	r := gin.Default()
 	r.GET("/cards", func(c *gin.Context) {
 		cards := []card.Card{
