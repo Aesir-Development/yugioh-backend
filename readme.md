@@ -31,9 +31,8 @@ The server will start on port 8080.
 
 ## Endpoints
 GET /cards: Fetches a list of all cards.
+
 GET /test: A test endpoint that fetches all table names from the database. This is a temporary endpoint for testing purposes and will be removed in the future.
-## Contributing
-Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## License
 This project is licensed under the MIT License - see the LICENSE.md file for details
