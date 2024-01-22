@@ -1,15 +1,15 @@
 package player
 
 import (
-	"github.com/Aesir-Development/yugioh-backend/internal/duel"
+	"github.com/Aesir-Development/yugioh-backend/pkg/card"
 )
 
 
 // Player struct
 type Player struct {
-	Deck []duel.CardState
-	Hand []duel.CardState
-	Graveyard []duel.CardState
-	ExtraDeck []duel.CardState
-	Field []duel.CardState
+	Deck []card.CardState
+	Hand []card.CardState
+	Graveyard []card.CardState
+	ExtraDeck []card.CardState
+	Field []card.CardState
 }
