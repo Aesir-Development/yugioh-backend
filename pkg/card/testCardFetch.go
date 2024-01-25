@@ -8,7 +8,7 @@ import (
 var API_URL = "https://db.ygoprodeck.com/api/v7/cardinfo.php"
 
 // A test function for fetching a card from the API
-func TestCardFetch(name string) {
+func TestCardFetch(name string) Card {
 	resp, err := http.Get(API_URL + "?name=" + name)
 	if err != nil {
 		panic("Error fetching card")
@@ -24,4 +24,5 @@ func TestCardFetch(name string) {
 	
 	newCards := ParseCards(body)
 	println(newCards[0].Name) // At this point, we have a card struct with the data from the API
+	return newCards[0]
 }

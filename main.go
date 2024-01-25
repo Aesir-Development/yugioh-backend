@@ -45,10 +45,9 @@ func main() {
 	})
 
 	// TODO - Make a better test route for the card package. This is just a placeholder
-	r.GET("/test", func(c *gin.Context) {
-		card.TestCardFetch("Blue-Eyes White Dragon")
-		tables := FetchTables()
-		c.JSON(http.StatusOK, tables)
+	r.GET("/cards/testcardfetch", func(c *gin.Context) {
+		newCard := card.TestCardFetch("Red-Eyes Black Dragon")
+		c.JSON(http.StatusOK, newCard)
 	})
 	
 	r.Run(":8080")
