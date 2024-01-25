@@ -2,15 +2,19 @@ package main
 
 import (
 	"net/http"
-	"github.com/gin-gonic/gin"
+
 	conn "github.com/Aesir-Development/yugioh-backend/internal/db" // Importing the DB connection package
 	"github.com/Aesir-Development/yugioh-backend/pkg/card" // Importing the card package
+	"github.com/gin-gonic/gin"
 )
 
 
 func main() {
+	conn.Setup() // Setting up the DB structure and tables if they don't exist
 
 	r := gin.Default()
+
+	// TODO - Add support for fetching specific cards from the DB
 	r.GET("/cards", func(c *gin.Context) {
 		cards := []card.Card{
 			{
@@ -44,10 +48,11 @@ func main() {
 		c.JSON(http.StatusOK, cards)
 	})
 
-	// TODO - Make a better test route for the card package. This is just a placeholder
-	r.GET("/cards/testcardfetch", func(c *gin.Context) {
-		newCard := card.TestCardFetch("Red-Eyes Black Dragon")
-		c.JSON(http.StatusOK, newCard)
+	// WARNING - This should be removed after first run, it's only to get all cards from the API and save them to the DB
+	r.GET("/cards/getcards", func(c *gin.Context) {
+		allCards := conn.GetCards()
+		conn.SaveCards(allCards)
+		c.JSON(http.StatusOK, "{\"message\": \"Cards saved to DB\"}")
 	})
 	
 	r.Run(":8080")
