@@ -102,8 +102,19 @@ func CardPricesToJSON(prices []card.CardPrice) string {
 	return string(json)
 }
 
-func FetchCard(name string) card.Card {
-	result, err := DB.Query("SELECT * FROM cards WHERE id = ?", "12759")
+func FetchCardByName(name string) card.Card {
+	result, err := DB.Query("SELECT * FROM cards WHERE name = ?", name)
+	if err != nil {
+		panic(err)
+	}
+
+	card := ScanRows(*result)
+
+	return card
+}
+
+func FetchCardByID(ID int) card.Card {
+	result, err := DB.Query("SELECT * FROM cards WHERE id = ?", ID)
 	if err != nil {
 		panic(err)
 	}

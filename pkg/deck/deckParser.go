@@ -2,6 +2,7 @@ package deck
 
 import (
 	"encoding/json"
+	"net/url"
 )
 
 // NOTE: This uses the YGOPRODeck deck builder, and parses the deck to a JSON string
@@ -19,3 +20,9 @@ func ParseDeck(deck Deck) string {
 }
 
 // TODO - Parse string to deck from YGOPRODeck deck builder
+
+// NOTE - This is a test function to figure out how the string is encoded
+// TODO - Finish this
+func ParseDeckString(encoded string) {
+	urlDecoded := url.QueryUnescape(encoded)
+}

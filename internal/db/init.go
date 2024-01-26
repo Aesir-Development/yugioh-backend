@@ -4,7 +4,6 @@ package dbConnection
 
 // Setup the DB structure and tables if they don't exist
 func Setup() {
-	// TODO - Card table setup
 	_, err := DB.Exec("CREATE TABLE IF NOT EXISTS cards (" +
 		"id INT NOT NULL AUTO_INCREMENT," +
 		"name VARCHAR(255) NOT NULL," +
@@ -27,7 +26,7 @@ func Setup() {
 	}
 
 
-	// TODO - User table setup
+	// TODO- Flesh out the users table
 	_, err = DB.Exec("CREATE TABLE IF NOT EXISTS users (" +
 		"id INT NOT NULL AUTO_INCREMENT," +
 		"puuid VARCHAR(255) NOT NULL," +
