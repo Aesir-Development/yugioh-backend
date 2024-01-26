@@ -119,7 +119,7 @@ var m map[string]string = map[string]string{
 	"name": "Name",
 	"type": "Type",
 	"frame_type": "FrameType",
-	"desc": "Description",
+	"description": "Description",
 	"attack": "Attack",
 	"defense": "Defense",
 	"level": "Level",
@@ -130,7 +130,21 @@ var m map[string]string = map[string]string{
 	"card_prices": "CardPrices",
 }
 	
-
+type CardSQLWrapper struct {
+	ID int `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"type"`
+	FrameType string `json:"frameType"`
+	Description string `json:"desc"`
+	Attack int `json:"atk"`
+	Defense int `json:"def"`
+	Level int `json:"level"`
+	Race string `json:"race"`
+	Attribute string `json:"attribute"`
+	CardSets []uint8 `json:"card_sets"`
+	CardImages []uint8 `json:"card_images"`
+	CardPrices []uint8 `json:"card_prices"`
+}
 
 // Extracting the card data from the SQL query, because it's not supported by default
 func ScanRows(rows sql.Rows) card.Card {
@@ -142,30 +156,75 @@ func ScanRows(rows sql.Rows) card.Card {
 	returnCard := card.Card{}
 	
 	for rows.Next() {
-		card := card.Card{}
+		cardWrapped := CardSQLWrapper {}
 		pointers := make([]interface{}, len(columnNames))
-		structVal := reflect.ValueOf(card)
+		structVal := reflect.ValueOf(&cardWrapped).Elem()
 		for i, colName := range columnNames {
-
 			colName = m[colName]
 
-			fieldVal := structVal.FieldByName(colName)
+			if(colName == "") {
+				continue
+			}
 
+			fieldVal := structVal.FieldByName(colName)
 			if !fieldVal.IsValid() {
+				println("Column name: " + colName)
 				log.Fatalf("No such field: %s in obj", colName)
 			}
-			pointers[i] = fieldVal.Addr().Interface() // FIXME - Fix unaddressable value error
+			fieldAddr := fieldVal.Addr()
+			pointers[i] = fieldAddr.Interface()
 		}
-
 		err := rows.Scan(pointers...)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		returnCard = card
+		cardSets, cardImages, cardPrices := CardStructsFromUint8(cardWrapped.CardSets, cardWrapped.CardImages, cardWrapped.CardPrices)
+
+		returnCard = card.Card {
+			ID: cardWrapped.ID,
+			Name: cardWrapped.Name,
+			Type: cardWrapped.Type,
+			FrameType: cardWrapped.FrameType,
+			Description: cardWrapped.Description,
+			Attack: cardWrapped.Attack,
+			Defense: cardWrapped.Defense,
+			Level: cardWrapped.Level,
+			Race: cardWrapped.Race,
+			Attribute: cardWrapped.Attribute,
+			CardSets: cardSets,
+			CardImages: cardImages,
+			CardPrices: cardPrices,
+		}
+
+		println(returnCard.Name)
 
 	}
 
 	return returnCard
 
+}
+
+func CardStructsFromUint8(CardSet []uint8, CardImage []uint8, CardPrice []uint8) ([]card.CardSet, []card.CardImage, []card.CardPrice) {
+	cardSets := []card.CardSet {}
+	cardImages := []card.CardImage {}
+	cardPrices := []card.CardPrice {}
+	
+	err := json.Unmarshal(CardSet, &cardSets)
+	if err != nil {
+		panic(err)
+	}
+
+	err = json.Unmarshal(CardImage, &cardImages)
+	if err != nil {
+		panic(err)
+	}
+
+	err = json.Unmarshal(CardPrice, &cardPrices)
+	if err != nil {
+		panic(err)
+	}
+
+
+	return cardSets, cardImages, cardPrices
 }
