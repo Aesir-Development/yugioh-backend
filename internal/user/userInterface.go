@@ -12,3 +12,7 @@ type User struct {
 	Password string
 }
 
+func ParseUsers(body []byte) []User {
+	// TODO - Parse the users from the body
+	return []User{}
+}

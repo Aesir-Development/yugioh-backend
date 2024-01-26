@@ -1,10 +1,15 @@
 package dbConnection
 
 import (
-	"net/http"
-	"io"
-	"github.com/Aesir-Development/yugioh-backend/pkg/card"
+	"database/sql"
 	"encoding/json"
+	"io"
+	"log"
+	"net/http"
+
+	"reflect"
+
+	"github.com/Aesir-Development/yugioh-backend/pkg/card"
 )
 
 // CARDS TABLE
@@ -95,4 +100,72 @@ func CardPricesToJSON(prices []card.CardPrice) string {
 		panic(err)
 	}
 	return string(json)
+}
+
+func FetchCard(name string) card.Card {
+	result, err := DB.Query("SELECT * FROM cards WHERE id = ?", "12759")
+	if err != nil {
+		panic(err)
+	}
+
+	card := ScanRows(*result)
+
+	return card
+}
+
+// map for DB names to Struct names
+var m map[string]string = map[string]string{
+	"id": "ID",
+	"name": "Name",
+	"type": "Type",
+	"frame_type": "FrameType",
+	"desc": "Description",
+	"attack": "Attack",
+	"defense": "Defense",
+	"level": "Level",
+	"race": "Race",
+	"attribute": "Attribute",
+	"card_sets": "CardSets",
+	"card_images": "CardImages",
+	"card_prices": "CardPrices",
+}
+	
+
+
+// Extracting the card data from the SQL query, because it's not supported by default
+func ScanRows(rows sql.Rows) card.Card {
+	columnNames, err := rows.Columns()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	returnCard := card.Card{}
+	
+	for rows.Next() {
+		card := card.Card{}
+		pointers := make([]interface{}, len(columnNames))
+		structVal := reflect.ValueOf(card)
+		for i, colName := range columnNames {
+
+			colName = m[colName]
+
+			fieldVal := structVal.FieldByName(colName)
+
+			if !fieldVal.IsValid() {
+				log.Fatalf("No such field: %s in obj", colName)
+			}
+			pointers[i] = fieldVal.Addr().Interface() // FIXME - Fix unaddressable value error
+		}
+
+		err := rows.Scan(pointers...)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		returnCard = card
+
+	}
+
+	return returnCard
+
 }

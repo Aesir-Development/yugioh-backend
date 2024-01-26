@@ -54,6 +54,11 @@ func main() {
 		conn.SaveCards(allCards)
 		c.JSON(http.StatusOK, "{\"message\": \"Cards saved to DB\"}")
 	})
+
+	r.GET("/cards/getcardfromdb", func(c *gin.Context) {
+		card := conn.FetchCard("Blue-Eyes White Dragon")
+		c.JSON(http.StatusOK, card)
+	})
 	
 	r.Run(":8080")
 }
