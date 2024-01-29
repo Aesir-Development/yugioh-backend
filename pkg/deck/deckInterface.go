@@ -4,8 +4,7 @@ import (
 	"github.com/Aesir-Development/yugioh-backend/pkg/card"
 )
 
-// NOTE: This uses the YGOPRODeck deck builder
-// https://ygoprodeck.com/deckbuilder/
+// NOTE - This will be using our own deck builder in the future
 
 type Deck struct {
 	Deck []card.CardState `json:"deck"`

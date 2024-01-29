@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	conn "github.com/Aesir-Development/yugioh-backend/internal/db" // Importing the DB connection package
-	// "github.com/Aesir-Development/yugioh-backend/pkg/card" // Importing the card package
 	"github.com/gin-gonic/gin"
 	"strconv"
 	"net/url"
@@ -16,7 +15,7 @@ type ErrorMessage struct {
 
 
 func main() {
-	conn.Setup() // Setting up the DB structure and tables if they don't exist
+	conn.Setup() // Setting up the DB structure and tables if they don't exists
 
 	r := gin.Default()
 
