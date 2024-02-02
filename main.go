@@ -2,11 +2,10 @@ package main
 
 import (
 	"net/http"
-
+	"net/url"
+	"strconv"
 	conn "github.com/Aesir-Development/yugioh-backend/internal/db" // Importing the DB connection package
 	"github.com/gin-gonic/gin"
-	"strconv"
-	"net/url"
 )
 
 type ErrorMessage struct {
@@ -15,7 +14,10 @@ type ErrorMessage struct {
 
 
 func main() {
-	conn.Setup() // Setting up the DB structure and tables if they don't exists
+	err := conn.Setup() // Setting up the DB structure and tables if they don't exists
+	if err != nil {
+		panic(err)
+	}
 
 	r := gin.Default()
 
@@ -58,5 +60,6 @@ func main() {
 		c.JSON(http.StatusOK, ErrorMessage {Message: "Cards saved to DB"})
 	})
 	
+
 	r.Run(":8080")
 }

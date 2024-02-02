@@ -47,12 +47,20 @@ func GetCards() []card.Card {
 	return cards
 }
 
+type jsonWrapper struct {
+	cardImages []card.CardImage
+	cardSets []card.CardSet
+	cardPrices []card.CardPrice
+}
+
 // SaveCards - Save cards to DB
 func SaveCards(cards []card.Card) {
 	for _, card := range cards {
-		cardImagesJSON := CardImagesToJSON(card.CardImages)
-		cardSetsJSON := CardSetsToJSON(card.CardSets)
-		cardPricesJSON := CardPricesToJSON(card.CardPrices)
+		cardImagesJSON, cardSetsJSON, cardPricesJSON := CardJson(jsonWrapper {
+			cardImages: card.CardImages, 
+			cardSets: card.CardSets, 
+			cardPrices: card.CardPrices,
+		})
 	
 		_, err := DB.Exec("INSERT INTO cards (name, type, frame_type, description, attack, defense, level, race, attribute, card_sets, card_images, card_prices) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		card.Name, card.Type, card.FrameType, card.Description, card.Attack, card.Defense, card.Level, card.Race, card.Attribute, cardSetsJSON, cardImagesJSON, cardPricesJSON)
@@ -63,43 +71,23 @@ func SaveCards(cards []card.Card) {
 	}
 }
 
-// SaveCard - Save a single card to DB
-func SaveCard(card card.Card) {
-
-	cardImagesJSON := CardImagesToJSON(card.CardImages)
-	cardSetsJSON := CardSetsToJSON(card.CardSets)
-	cardPricesJSON := CardPricesToJSON(card.CardPrices)
-
-	_, err := DB.Exec("INSERT INTO cards (name, type, frame_type, description, attack, defense, level, race, attribute, card_sets, card_images, card_prices) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-	card.Name, card.Type, card.FrameType, card.Description, card.Attack, card.Defense, card.Level, card.Race, card.Attribute, cardSetsJSON, cardImagesJSON, cardPricesJSON)
-
+func CardJson(wrapper jsonWrapper) (string, string, string) {
+	cardImagesJSON, err := json.Marshal(wrapper.cardImages)
 	if err != nil {
 		panic(err)
 	}
-}
 
-func CardImagesToJSON(images []card.CardImage) string {
-	json, err := json.Marshal(images)
+	cardSetsJSON, err := json.Marshal(wrapper.cardSets)
 	if err != nil {
 		panic(err)
 	}
-	return string(json)
-}
 
-func CardSetsToJSON(sets []card.CardSet) string {
-	json, err := json.Marshal(sets)
+	cardPricesJSON, err := json.Marshal(wrapper.cardPrices)
 	if err != nil {
 		panic(err)
 	}
-	return string(json)
-}
 
-func CardPricesToJSON(prices []card.CardPrice) string {
-	json, err := json.Marshal(prices)
-	if err != nil {
-		panic(err)
-	}
-	return string(json)
+	return string(cardImagesJSON), string(cardSetsJSON), string(cardPricesJSON)
 }
 
 func FetchCardByName(name string) card.Card {

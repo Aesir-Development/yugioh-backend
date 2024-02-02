@@ -1,9 +1,11 @@
 package dbConnection
 
-
+import (
+	"fmt"
+)
 
 // Setup the DB structure and tables if they don't exist
-func Setup() {
+func Setup() error {
 	_, err := DB.Exec("CREATE TABLE IF NOT EXISTS cards (" +
 		"id INT NOT NULL AUTO_INCREMENT," +
 		"name VARCHAR(255) NOT NULL," +
@@ -22,7 +24,7 @@ func Setup() {
 		")")
 
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("error creating cards table: %s", err)
 	}
 
 
@@ -37,11 +39,13 @@ func Setup() {
 		")")
 
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("error creating users table: %s", err)
 	}
 
 	// TODO - Deck table setup
 	
 	// TODO - Player table setup
+
+	return nil
 
 }
