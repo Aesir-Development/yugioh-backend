@@ -101,6 +101,24 @@ func FetchCardByName(name string) card.Card {
 	return card
 }
 
+// TODO - Better error handling for this
+// NOTE - Untested, use with caution
+func FetchCardsByName(name string, limit int) []card.Card {
+	result, err := DB.Query("SELECT * FROM cards WHERE name = ? LIMIT ?", name, limit)
+	if err != nil {
+		panic(err)
+	}
+
+	cards := []card.Card {}
+
+	for result.Next() {
+		card := ScanRows(*result)
+		cards = append(cards, card)
+	}
+
+	return cards
+}
+
 func FetchCardByID(ID int) card.Card {
 	result, err := DB.Query("SELECT * FROM cards WHERE id = ?", ID)
 	if err != nil {

@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+
 	conn "github.com/Aesir-Development/yugioh-backend/internal/db" // Importing the DB connection package
+	"github.com/Aesir-Development/yugioh-backend/pkg/card"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,34 +25,26 @@ func main() {
 
 	r.GET("/cards", func(c *gin.Context) {
 		name := c.Query("name")
-		id := c.Query("id")
+		limit := c.Query("limit")
 
-		if id != "" {
-
-			intID, err := strconv.Atoi(id)
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, "{\"message\": \"Invalid ID\"}")
-				return
-			}
-	
-			card := conn.FetchCardByID(intID)
-			c.JSON(http.StatusOK, card)
-		} else if name != "" {
-
-			// URL decode the name
-			decodedName, err := url.QueryUnescape(name)
-
-			if err != nil {
-				c.JSON(http.StatusBadRequest, "{\"message\": \"Invalid name\"}")
-				return
-			}
-
-			card := conn.FetchCardByName(decodedName)
-			c.JSON(http.StatusOK, card)
-		} else {
+		if (name == "" || limit == "") {
 			c.JSON(http.StatusBadRequest, ErrorMessage {Message: "Invalid query parameters"})
+			return
 		}
+
+		limitInt, err := strconv.Atoi(limit)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, ErrorMessage {Message: "Invalid limit"})
+			return
+		}
+
+		escapedName := url.QueryEscape(name)
+
+		cards := GetCards(escapedName, limitInt)
+
+		c.JSON(http.StatusOK, cards)
+
+		// TODO - Fetch cards by name and limit
 	})
 
 	// WARNING - This should be removed after first run, it's only to get all cards from the API and save them to the DB
@@ -62,4 +56,9 @@ func main() {
 	
 
 	r.Run(":8080")
+}
+
+func GetCards(name string, limit int) []card.Card {
+	cards := conn.FetchCardsByName(name, limit)
+	return cards
 }
