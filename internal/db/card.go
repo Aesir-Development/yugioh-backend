@@ -3,6 +3,7 @@ package dbConnection
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -11,6 +12,8 @@ import (
 
 	"github.com/Aesir-Development/yugioh-backend/pkg/card"
 )
+
+// TODO - Better error handling
 
 // CARDS TABLE
 /*
@@ -96,27 +99,27 @@ func FetchCardByName(name string) card.Card {
 		panic(err)
 	}
 
-	card := ScanRows(*result)
+	card := ScanRow(result)
 
 	return card
 }
 
-// TODO - Better error handling for this
+
 // NOTE - Untested, use with caution
-func FetchCardsByName(name string, limit int) []card.Card {
-	result, err := DB.Query("SELECT * FROM cards WHERE name = ? LIMIT ?", name, limit)
+func FetchCardsByName(name string, limit int) ([]card.Card, error) {
+	result, err := DB.Query("SELECT * FROM cards WHERE name LIKE ? LIMIT ?", name + "%", limit)
 	if err != nil {
-		panic(err)
+		println("Error fetching cards: " + err.Error())
+		return nil, fmt.Errorf("error fetching cards: %s", err)
 	}
 
-	cards := []card.Card {}
+	cards, err := ScanRows(result)
 
-	for result.Next() {
-		card := ScanRows(*result)
-		cards = append(cards, card)
-	}
+	if err != nil {
+		return nil, fmt.Errorf("error scanning rows: %s", err)
+	}	
 
-	return cards
+	return cards, nil
 }
 
 func FetchCardByID(ID int) card.Card {
@@ -125,7 +128,7 @@ func FetchCardByID(ID int) card.Card {
 		panic(err)
 	}
 
-	card := ScanRows(*result)
+	card := ScanRow(result)
 
 	return card
 }
@@ -163,8 +166,8 @@ type CardSQLWrapper struct {
 	CardPrices []uint8 `json:"card_prices"`
 }
 
-// Extracting the card data from the SQL query, because it's not supported by default
-func ScanRows(rows sql.Rows) card.Card {
+// Extracting the card data from the SQL query to a Card struct
+func ScanRow(rows *sql.Rows) (card.Card) {
 	columnNames, err := rows.Columns()
 	if err != nil {
 		log.Fatal(err)
@@ -173,53 +176,83 @@ func ScanRows(rows sql.Rows) card.Card {
 	returnCard := card.Card{}
 	
 	for rows.Next() {
-		cardWrapped := CardSQLWrapper {}
-		pointers := make([]interface{}, len(columnNames))
-		structVal := reflect.ValueOf(&cardWrapped).Elem()
-		for i, colName := range columnNames {
-			colName = m[colName]
 
-			if(colName == "") {
-				continue
-			}
-
-			fieldVal := structVal.FieldByName(colName)
-			if !fieldVal.IsValid() {
-				println("Column name: " + colName)
-				log.Fatalf("No such field: %s in obj", colName)
-			}
-			fieldAddr := fieldVal.Addr()
-			pointers[i] = fieldAddr.Interface()
-		}
-		err := rows.Scan(pointers...)
+		newCard, err := CardWrapper(columnNames, rows)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		cardSets, cardImages, cardPrices := CardStructsFromUint8(cardWrapped.CardSets, cardWrapped.CardImages, cardWrapped.CardPrices)
+		returnCard = newCard
 
-		returnCard = card.Card {
-			ID: cardWrapped.ID,
-			Name: cardWrapped.Name,
-			Type: cardWrapped.Type,
-			FrameType: cardWrapped.FrameType,
-			Description: cardWrapped.Description,
-			Attack: cardWrapped.Attack,
-			Defense: cardWrapped.Defense,
-			Level: cardWrapped.Level,
-			Race: cardWrapped.Race,
-			Attribute: cardWrapped.Attribute,
-			CardSets: cardSets,
-			CardImages: cardImages,
-			CardPrices: cardPrices,
-		}
-
-		println(returnCard.Name)
+		println(newCard.Name)
 
 	}
 
 	return returnCard
+}
 
+// Extracting the card data from the SQL query to a Card struct array
+func ScanRows(rows *sql.Rows) ([]card.Card, error) {
+	columnNames, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
+
+	cards := []card.Card{}
+
+	for rows.Next() {
+		newCard, err := CardWrapper(columnNames, rows)
+		if err != nil {
+			return nil, err
+		}
+
+		cards = append(cards, newCard)
+	}
+
+	return cards, nil
+}
+
+func CardWrapper(columnNames []string, rows *sql.Rows) (card.Card, error) {
+	cardWrapped := CardSQLWrapper {}
+	pointers := make([]interface{}, len(columnNames))
+	structVal := reflect.ValueOf(&cardWrapped).Elem()
+	for i, colName := range columnNames {
+		colName = m[colName]
+
+		if(colName == "") {
+			continue
+		}
+
+		fieldVal := structVal.FieldByName(colName)
+		if !fieldVal.IsValid() {
+			println("Column name: " + colName)
+			return card.Card {}, fmt.Errorf("No such field: %s in CardSQLWrapper", colName)
+		}
+		fieldAddr := fieldVal.Addr()
+		pointers[i] = fieldAddr.Interface()
+	}
+	err := rows.Scan(pointers...)
+	if err != nil {
+		return card.Card {}, err
+	}
+
+	cardSets, cardImages, cardPrices := CardStructsFromUint8(cardWrapped.CardSets, cardWrapped.CardImages, cardWrapped.CardPrices)
+
+	return card.Card {
+		ID: cardWrapped.ID,
+		Name: cardWrapped.Name,
+		Type: cardWrapped.Type,
+		FrameType: cardWrapped.FrameType,
+		Description: cardWrapped.Description,
+		Attack: cardWrapped.Attack,
+		Defense: cardWrapped.Defense,
+		Level: cardWrapped.Level,
+		Race: cardWrapped.Race,
+		Attribute: cardWrapped.Attribute,
+		CardSets: cardSets,
+		CardImages: cardImages,
+		CardPrices: cardPrices,
+	}, nil
 }
 
 func CardStructsFromUint8(CardSet []uint8, CardImage []uint8, CardPrice []uint8) ([]card.CardSet, []card.CardImage, []card.CardPrice) {
