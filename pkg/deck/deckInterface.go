@@ -7,7 +7,6 @@ import (
 // NOTE - This will be using our own deck builder in the future
 
 type Deck struct {
-	Deck []card.CardState `json:"deck"`
-	ExtraDeck []card.CardState `json:"extraDeck"`
-	SideDeck []card.CardState `json:"sideDeck"`
+	Deck []card.Card `json:"deck"`
+	ExtraDeck []card.Card `json:"extraDeck"`
 }

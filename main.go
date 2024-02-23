@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	conn "github.com/Aesir-Development/yugioh-backend/internal/db" // Importing the DB connection package
-	"github.com/Aesir-Development/yugioh-backend/pkg/card"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,23 +24,50 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/cards", func(c *gin.Context) {
-		name := c.Query("name")
-		limit := c.Query("limit")
 
-		if (name == "" || limit == "") {
+		t := c.Query("type")
+		limit := c.Query("limit")
+		if (limit == "") {
 			c.JSON(http.StatusBadRequest, ErrorMessage {Message: "Invalid query parameters"})
 			return
 		}
 
 		limitInt, err := strconv.Atoi(limit)
-		if err != nil {
+		if (err != nil) {
 			c.JSON(http.StatusBadRequest, ErrorMessage {Message: "Invalid limit"})
 			return
 		}
 
-		escapedName := url.QueryEscape(name)
+		// If the type is set, we only want to fetch cards of that type
+		if t != "" {
 
-		cards, err := GetCards(escapedName, limitInt)
+
+			cards, err := conn.FetchCardByType("Spell Card", limitInt)
+
+			if (err != nil) {
+				c.JSON(http.StatusInternalServerError, ErrorMessage {Message: err.Error()})
+				return
+			}
+	
+			println(len(cards))
+			
+			c.JSON(http.StatusOK, cards)
+			return
+		}
+
+		name := c.Query("name")
+
+		if (name == "") {
+			c.JSON(http.StatusBadRequest, ErrorMessage {Message: "Invalid query parameters"})
+			return
+		}
+
+		escapedName := url.QueryEscape(name)
+		escapedName = strings.ReplaceAll(escapedName, "+", " ") // QueryEscape replaces spaces with +, so we need to replace them back to spaces
+
+		println(escapedName, limitInt)
+
+		cards, err := conn.FetchCardsByName(escapedName, limitInt)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, ErrorMessage {Message: err.Error()})
@@ -48,8 +75,6 @@ func main() {
 		}
 
 		c.JSON(http.StatusOK, cards)
-
-		// TODO - Fetch cards by name and limit
 	})
 
 	// WARNING - This should be removed after first run, it's only to get all cards from the API and save them to the DB
@@ -61,12 +86,4 @@ func main() {
 	
 
 	r.Run(":8080")
-}
-
-func GetCards(name string, limit int) ([]card.Card, error) {
-	cards, err := conn.FetchCardsByName(name, limit)
-	if err != nil {
-		return nil, err
-	}
-	return cards, nil
 }

@@ -133,6 +133,24 @@ func FetchCardByID(ID int) card.Card {
 	return card
 }
 
+func FetchCardByType(t string, limit int) ([]card.Card, error) {
+	result, err := DB.Query("SELECT * FROM cards WHERE type = ? limit ?", t, limit)
+	if err != nil {
+		println("Error fetching cards: " + err.Error())
+		return nil, fmt.Errorf("error fetching cards: %s", err)
+	}
+
+	cards, err := ScanRows(result)
+
+	println("Cards: ", len(cards))
+
+	if err != nil {
+		return nil, fmt.Errorf("error scanning rows: %s", err)
+	}	
+
+	return cards, nil
+}
+
 // map for DB names to Struct names
 var m map[string]string = map[string]string{
 	"id": "ID",
@@ -154,7 +172,7 @@ type CardSQLWrapper struct {
 	ID int `json:"id"`
 	Name string `json:"name"`
 	Type string `json:"type"`
-	FrameType string `json:"frameType"`
+	FrameType string `json:"frame_type"`
 	Description string `json:"desc"`
 	Attack int `json:"atk"`
 	Defense int `json:"def"`
@@ -213,6 +231,8 @@ func ScanRows(rows *sql.Rows) ([]card.Card, error) {
 }
 
 func CardWrapper(columnNames []string, rows *sql.Rows) (card.Card, error) {
+	println("CardWrapper")
+
 	cardWrapped := CardSQLWrapper {}
 	pointers := make([]interface{}, len(columnNames))
 	structVal := reflect.ValueOf(&cardWrapped).Elem()

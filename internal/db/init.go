@@ -43,6 +43,26 @@ func Setup() error {
 	}
 
 	// TODO - Deck table setup
+	_, err = DB.Exec("CREATE TABLE IF NOT EXISTS decks (" +
+		"id INT NOT NULL AUTO_INCREMENT," +
+		"PRIMARY KEY (id)" +
+		")")
+
+	if err != nil {
+		return fmt.Errorf("error creating decks table: %s", err)
+	}
+
+	_, err = DB.Exec("CREATE TABLE IF NOT EXISTS deck_cards (" +
+		"deck_id INT NOT NULL," +
+		"card_id INT NOT NULL," +
+		"is_extra_deck BOOLEAN NOT NULL," +
+		"FOREIGN KEY (deck_id) REFERENCES decks(id)," +
+		"FOREIGN KEY (card_id) REFERENCES cards(id)" +
+		")")
+
+	if err != nil {
+		return fmt.Errorf("error creating deck_cards table: %s", err)
+	}
 	
 	// TODO - Player table setup
 

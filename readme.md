@@ -32,7 +32,7 @@ The server will start on port 8080.
 
 GET /cards: Fetches a list of all cards.
 
-GET /test: A test endpoint that fetches all table names from the database. This is a temporary endpoint for testing purposes and will be removed in the future.
+GET /test/spellcard: Fetches a limited amount of spellcards.
 
 ## License
 
