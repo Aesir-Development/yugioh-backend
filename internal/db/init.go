@@ -34,7 +34,6 @@ func Setup() error {
 		"puuid VARCHAR(255) NOT NULL," +
 		"username VARCHAR(255) NOT NULL," +
 		"password VARCHAR(255) NOT NULL," +
-		"deck JSON," +
 		"PRIMARY KEY (id)" +
 		")")
 
@@ -55,7 +54,8 @@ func Setup() error {
 	_, err = DB.Exec("CREATE TABLE IF NOT EXISTS deck_cards (" +
 		"deck_id INT NOT NULL," +
 		"card_id INT NOT NULL," +
-		"is_extra_deck BOOLEAN NOT NULL," +
+		"card_type ENUM('main_deck', 'extra_deck')," +
+		"PRIMARY KEY (deck_id, card_id)," +
 		"FOREIGN KEY (deck_id) REFERENCES decks(id)," +
 		"FOREIGN KEY (card_id) REFERENCES cards(id)" +
 		")")
@@ -64,7 +64,18 @@ func Setup() error {
 		return fmt.Errorf("error creating deck_cards table: %s", err)
 	}
 	
-	// TODO - Player table setup
+	_, err = DB.Exec("CREATE TABLE IF NOT EXISTS saved_decks (" +
+		"id INT NOT NULL AUTO_INCREMENT," +
+		"user_id INT NOT NULL," +
+		"deck_id INT NOT NULL," +
+		"PRIMARY KEY (id)," +
+		"FOREIGN KEY (user_id) REFERENCES users(id)," +
+		"FOREIGN KEY (deck_id) REFERENCES decks(id)" +
+		")")
+
+	if err != nil {
+		return fmt.Errorf("error creating saved_decks table: %s", err)
+	}
 
 	return nil
 
